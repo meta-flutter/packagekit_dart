@@ -75,6 +75,39 @@ Future<void> main() async {
 }
 ```
 
+## Authorization and interactivity
+
+Install, remove, and update are polkit-gated. On a stock desktop the relevant
+actions (`org.freedesktop.packagekit.package-install` and friends) are
+`auth_admin_keep`, so a non-root caller must be authorized before the daemon
+will act.
+
+`PkClient.connect()` is interactive by default: transactions send
+`interactive=true`, which lets the daemon ask polkit to prompt the user. Pass
+`interactive: false` for unattended callers that must fail fast rather than
+block on a prompt:
+
+```dart
+final client = await PkClient.connect(interactive: false);
+```
+
+Non-interactive suppresses the prompt; it does not grant anything. An
+unauthorized transaction then fails immediately with `PkError.notAuthorized`.
+To run unattended, either call as root or install a polkit rule:
+
+```javascript
+// /etc/polkit-1/rules.d/49-packagekit-dart.rules
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.packagekit.") === 0 &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+});
+```
+
+Where there is no polkit agent — an SSH session, for instance — `pkttyagent
+--process $$ &` provides a text-mode prompt.
+
 ## Dependency resolution and the simulate-first pattern
 
 PackageKit performs full dependency resolution in the backend (libsolv for DNF/Zypper,

@@ -148,13 +148,23 @@ PkTransactionBridge::~PkTransactionBridge() {
 
 // ── SetHints ─────────────────────────────────────────────────────────────────
 
-void PkTransactionBridge::setHints(const std::string& locale) {
-    std::vector<std::string> hints = {
+std::vector<std::string> PkTransactionBridge::buildHints(const std::string& locale,
+                                                         bool interactive) {
+    // The daemon defaults interactive to FALSE when the hint is absent, which
+    // strips ALLOW_USER_INTERACTION from its polkit check and makes any
+    // transaction needing auth fail synchronously. Always send it explicitly.
+    return {
         "locale=" + locale,
         "background=false",
         "supports-plural-signals=true",
+        std::string("interactive=") + (interactive ? "true" : "false"),
     };
-    proxy_->callMethod("SetHints").onInterface(PK_TX_IFACE).withArguments(hints);
+}
+
+void PkTransactionBridge::setHints(const std::string& locale, bool interactive) {
+    proxy_->callMethod("SetHints")
+        .onInterface(PK_TX_IFACE)
+        .withArguments(buildHints(locale, interactive));
 }
 
 // ── Query methods ────────────────────────────────────────────────────────────

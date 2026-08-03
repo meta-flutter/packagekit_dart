@@ -39,7 +39,9 @@ PK_EXPORT void pk_manager_read_properties(void* handle);
 // ── Transaction ───────────────────────────────────────────────────────────────
 PK_EXPORT void* pk_transaction_create(void* manager, Dart_Port tx_port);
 PK_EXPORT void pk_transaction_destroy(void* handle);
-PK_EXPORT void pk_transaction_set_hints(void* handle, const char* locale);
+// interactive: when true, the daemon may ask polkit to prompt the user for
+// authorization. When false, an unauthorized transaction fails immediately.
+PK_EXPORT void pk_transaction_set_hints(void* handle, const char* locale, bool interactive);
 
 // ── Query methods ─────────────────────────────────────────────────────────────
 PK_EXPORT void pk_search_name(void* handle, uint64_t filter, const char* const* values,

@@ -1,3 +1,20 @@
+## 0.4.0
+
+- Send the `interactive` hint on every transaction. The daemon treats an
+  absent hint as false, which strips `ALLOW_USER_INTERACTION` from its polkit
+  check — so any transaction needing authorization failed synchronously with
+  `PkError.notAuthorized` and a 0 ms runtime, on any host where the polkit
+  action is `auth_admin` and the caller is not root.
+- Add `PkClient.connect({bool interactive = true})` and the matching
+  `PkClient.interactive` getter. Interactive is the default: transactions that
+  need authorization now prompt instead of failing. Pass `interactive: false`
+  for unattended callers that must fail fast rather than block on a prompt —
+  it suppresses the prompt, it does not grant authorization.
+- **C ABI change:** `pk_transaction_set_hints` takes a third parameter,
+  `bool interactive`. Consumers linking `libpackagekit_nc` directly must
+  update their declaration; consumers using the build hook are unaffected,
+  as it compiles the library from source.
+
 ## 0.3.2
 
 - Point `repository` and `issue_tracker` at the jwinarske fork, fixing

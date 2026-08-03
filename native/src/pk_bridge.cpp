@@ -91,8 +91,8 @@ void pk_transaction_destroy(void* handle) {
     }
 }
 
-void pk_transaction_set_hints(void* handle, const char* locale) {
-    PK_TX_TRY(handle, tx(handle)->setHints(locale ? locale : "en_US.UTF-8"));
+void pk_transaction_set_hints(void* handle, const char* locale, bool interactive) {
+    PK_TX_TRY(handle, tx(handle)->setHints(locale ? locale : "en_US.UTF-8", interactive));
 }
 
 // ── Query methods ────────────────────────────────────────────────────────────

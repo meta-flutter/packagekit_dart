@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "pk_transaction.h"
 #include "pk_types.h"
 
@@ -307,4 +309,30 @@ TEST(PkTransaction, FilesSignalRoundtrip) {
     PkFiles decoded{};
     glz::decode(buf.data(), 1, decoded);
     EXPECT_EQ(decoded.files, f.files);
+}
+
+// ── SetHints argument vector ─────────────────────────────────────────────────
+
+TEST(PkTransaction, HintsIncludeInteractiveTrue) {
+    auto hints = PkTransactionBridge::buildHints("en_US.UTF-8", true);
+
+    EXPECT_NE(std::find(hints.begin(), hints.end(), "interactive=true"), hints.end());
+    EXPECT_EQ(std::find(hints.begin(), hints.end(), "interactive=false"), hints.end());
+}
+
+TEST(PkTransaction, HintsIncludeInteractiveFalse) {
+    auto hints = PkTransactionBridge::buildHints("en_US.UTF-8", false);
+
+    EXPECT_NE(std::find(hints.begin(), hints.end(), "interactive=false"), hints.end());
+    EXPECT_EQ(std::find(hints.begin(), hints.end(), "interactive=true"), hints.end());
+}
+
+TEST(PkTransaction, HintsPreserveLocaleAndDefaults) {
+    auto hints = PkTransactionBridge::buildHints("de_DE.UTF-8", true);
+
+    ASSERT_EQ(hints.size(), 4u);
+    EXPECT_EQ(hints[0], "locale=de_DE.UTF-8");
+    EXPECT_EQ(hints[1], "background=false");
+    EXPECT_EQ(hints[2], "supports-plural-signals=true");
+    EXPECT_EQ(hints[3], "interactive=true");
 }

@@ -48,8 +48,9 @@ class PkBindings {
       void Function(Pointer<Void>)>('pk_transaction_destroy');
 
   static final _txSetHints = _lib.lookupFunction<
-      Void Function(Pointer<Void>, Pointer<Utf8>),
-      void Function(Pointer<Void>, Pointer<Utf8>)>('pk_transaction_set_hints');
+      Void Function(Pointer<Void>, Pointer<Utf8>, Bool),
+      void Function(
+          Pointer<Void>, Pointer<Utf8>, bool)>('pk_transaction_set_hints');
 
   static Pointer<Void> transactionCreate(Object manager, int txPort) =>
       _txCreate(manager as Pointer<Void>, txPort);
@@ -57,9 +58,10 @@ class PkBindings {
   static void transactionDestroy(Object handle) =>
       _txDestroy(handle as Pointer<Void>);
 
-  static void transactionSetHints(Object handle, String locale) {
+  static void transactionSetHints(
+      Object handle, String locale, bool interactive) {
     final p = locale.toNativeUtf8();
-    _txSetHints(handle as Pointer<Void>, p);
+    _txSetHints(handle as Pointer<Void>, p, interactive);
     calloc.free(p);
   }
 

@@ -10,6 +10,10 @@
   need authorization now prompt instead of failing. Pass `interactive: false`
   for unattended callers that must fail fast rather than block on a prompt —
   it suppresses the prompt, it does not grant authorization.
+- Document authorization on WSL, where polkit cannot reliably prompt because
+  a logind session owned by the calling user is often absent. Recommends
+  running as root, with a narrowly scoped polkit rule as an opt-in
+  alternative, plus how to tell a session problem from a real denial.
 - **C ABI change:** `pk_transaction_set_hints` takes a third parameter,
   `bool interactive`. Consumers linking `libpackagekit_nc` directly must
   update their declaration; consumers using the build hook are unaffected,

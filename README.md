@@ -93,20 +93,69 @@ final client = await PkClient.connect(interactive: false);
 
 Non-interactive suppresses the prompt; it does not grant anything. An
 unauthorized transaction then fails immediately with `PkError.notAuthorized`.
-To run unattended, either call as root or install a polkit rule:
+To run unattended, run as root.
+
+Where there is no polkit agent — an SSH session, for instance — `pkttyagent
+--process $$ &` provides a text-mode prompt.
+
+### WSL
+
+polkit cannot reliably prompt on WSL. It needs a logind session owned by the
+calling user, and WSL frequently supplies neither: shells started by tooling
+belong to no session at all, and sessions manufactured with `sudo` end up owned
+by root while running your uid. In both cases an authentication agent registers
+successfully and is then never consulted, so every privileged transaction fails
+instantly with `PkError.notAuthorized` — indistinguishable from a real denial.
+
+Run as root instead:
+
+```console
+$ sudo my-tool install ...
+```
+
+uid 0 bypasses polkit entirely, so no agent, session, or policy change is
+needed. This is the recommended approach on WSL.
+
+#### Optional: authorizing without a prompt
+
+If you need non-root operation, a polkit rule can authorize specific actions
+for the `wheel` group. This is a persistent change to system authorization
+policy — it grants unattended install, remove, and update to everyone in
+`wheel`, with no authentication. Decide whether that is acceptable for your
+machine before installing it.
 
 ```javascript
 // /etc/polkit-1/rules.d/49-packagekit-dart.rules
+//
+// Scoped to three named actions on purpose. A blanket grant on
+// org.freedesktop.packagekit.* would also cover repository reconfiguration
+// and untrusted-package installs, which is a considerably larger grant.
 polkit.addRule(function(action, subject) {
-    if (action.id.indexOf("org.freedesktop.packagekit.") === 0 &&
-        subject.isInGroup("wheel")) {
+    var allowed = [
+        "org.freedesktop.packagekit.package-install",
+        "org.freedesktop.packagekit.package-remove",
+        "org.freedesktop.packagekit.system-update"
+    ];
+    if (allowed.indexOf(action.id) !== -1 && subject.isInGroup("wheel")) {
         return polkit.Result.YES;
     }
 });
 ```
 
-Where there is no polkit agent — an SSH session, for instance — `pkttyagent
---process $$ &` provides a text-mode prompt.
+Remove it with `sudo rm /etc/polkit-1/rules.d/49-packagekit-dart.rules`.
+
+#### Diagnosing an unexpected `notAuthorized`
+
+Session problems and genuine policy denials produce the same error. To tell
+them apart:
+
+```console
+$ loginctl show-session $(loginctl session-status | head -1 | awk '{print $1}') \
+    -p User -p Service -p Class
+```
+
+A usable session reports your own uid, `Service=login`, and `Class=user`. If
+the command errors, the shell has no session and cannot be prompted.
 
 ## Dependency resolution and the simulate-first pattern
 

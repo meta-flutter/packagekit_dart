@@ -107,32 +107,28 @@ by root while running your uid. In both cases an authentication agent registers
 successfully and is then never consulted, so every privileged transaction fails
 instantly with `PkError.notAuthorized` — indistinguishable from a real denial.
 
-Run as root instead:
+Install the polkit rule below. It needs no agent, no session, and no password,
+and it works from any shell — which is what makes it the right answer here
+rather than merely an alternative to prompting.
 
-```console
-$ sudo my-tool install ...
-```
-
-uid 0 bypasses polkit entirely, so no agent, session, or policy change is
-needed. This is the simplest approach on WSL.
-
-Note that `sudo` resets `PATH` via `secure_path`, so a tool installed under
-`~/.local` will not be found. Use an absolute path:
+Running as root also works and needs no policy change:
 
 ```console
 $ sudo "$(command -v my-tool)" install ...
 ```
 
-Weigh this against what the calling tool does besides package management. A
-process running as root writes root-owned files, so anything that also
-maintains caches or configuration under `$HOME` will leave artifacts the user
-can no longer modify. For those callers, prefer the rule below and keep the
-client unprivileged — which is the arrangement PackageKit exists to make
-possible.
+uid 0 bypasses polkit entirely. Note the absolute path: `sudo` resets `PATH`
+via `secure_path`, so a tool installed under `~/.local` will not be found.
 
-#### Optional: authorizing without a prompt
+Prefer the rule for anything repeated, and weigh root against what the calling
+tool does besides package management. A process running as root writes
+root-owned files, so anything that also maintains caches or configuration under
+`$HOME` will leave artifacts the user can no longer modify. Keeping the client
+unprivileged is the arrangement PackageKit exists to make possible.
 
-If you need non-root operation, a polkit rule can authorize specific actions
+#### Authorizing without a prompt
+
+A polkit rule can authorize specific actions
 for the local administrator group. This is a persistent change to system
 authorization policy — it grants unattended install, remove, and update to
 every member of that group, with no authentication. Decide whether that is
@@ -177,6 +173,23 @@ keeps the groups it was created with. To test without logging out, prefix a
 single command with `sg wheel -c '…'`.
 
 Remove the rule with `sudo rm /etc/polkit-1/rules.d/49-packagekit-dart.rules`.
+
+The three actions above are the ones `installPackages`, `removePackages` and
+`updatePackages` need. Other operations map to their own actions with their own
+policies — `refreshCache` is the one most likely to surprise:
+
+| Action | no session | in a session |
+|---|---|---|
+| `package-install` | `auth_admin` | `auth_admin_keep` |
+| `system-sources-refresh` | `auth_admin` | **`yes`** |
+
+So `refreshCache` needs no authorization at all for a caller in a login
+session, and needs it for a caller without one — the CI and WSL case. If you
+call it from an unattended context, add
+`org.freedesktop.packagekit.system-sources-refresh` to the list. It is left out
+by default because the rule is deliberately minimal, and because most callers
+never refresh. Check any other operation with
+`pkaction --action-id <id> --verbose`.
 
 #### Diagnosing an unexpected `notAuthorized`
 

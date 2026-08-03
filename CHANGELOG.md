@@ -1,3 +1,15 @@
+## Unreleased
+
+- Lead the WSL guidance with the polkit rule rather than running as root.
+  Recommending root to library consumers pushes them to relay that to their
+  own users, and most tools keep caches or configuration under `$HOME`, where
+  running as root leaves artifacts the user can no longer modify. Keeping the
+  client unprivileged is what PackageKit exists to make possible.
+- Document that the suggested rule covers only install/remove/update.
+  `refreshCache` maps to `system-sources-refresh`, which needs no
+  authorization for a caller in a login session but does for one without —
+  the CI and WSL case.
+
 ## 0.4.1
 
 Documentation only — no code change. Released so the README rendered on

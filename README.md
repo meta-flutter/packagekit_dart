@@ -114,7 +114,21 @@ $ sudo my-tool install ...
 ```
 
 uid 0 bypasses polkit entirely, so no agent, session, or policy change is
-needed. This is the recommended approach on WSL.
+needed. This is the simplest approach on WSL.
+
+Note that `sudo` resets `PATH` via `secure_path`, so a tool installed under
+`~/.local` will not be found. Use an absolute path:
+
+```console
+$ sudo "$(command -v my-tool)" install ...
+```
+
+Weigh this against what the calling tool does besides package management. A
+process running as root writes root-owned files, so anything that also
+maintains caches or configuration under `$HOME` will leave artifacts the user
+can no longer modify. For those callers, prefer the rule below and keep the
+client unprivileged — which is the arrangement PackageKit exists to make
+possible.
 
 #### Optional: authorizing without a prompt
 

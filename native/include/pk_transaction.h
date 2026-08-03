@@ -36,9 +36,16 @@ class PkTransactionBridge {
     PkTransactionBridge(const PkTransactionBridge&) = delete;
     PkTransactionBridge& operator=(const PkTransactionBridge&) = delete;
 
+    // Builds the SetHints argument vector. Separated from setHints so it can
+    // be tested without a bus connection.
+    static std::vector<std::string> buildHints(const std::string& locale, bool interactive);
+
     // Must be called before any method invocation.
-    // Sends locale, background flag, supports-plural-signals.
-    void setHints(const std::string& locale = "en_US.UTF-8");
+    // Sends locale, background flag, supports-plural-signals, interactive.
+    //
+    // interactive gates whether polkit may prompt the user for authorization.
+    // It must be sent explicitly: the daemon treats an absent hint as false.
+    void setHints(const std::string& locale = "en_US.UTF-8", bool interactive = true);
 
     // ── Query methods ────────────────────────────────────────────────
     void searchName(uint64_t filter, const std::vector<std::string>& values);

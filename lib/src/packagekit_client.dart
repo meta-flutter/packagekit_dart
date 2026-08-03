@@ -49,17 +49,29 @@ class PkNetworkStateChangedEvent extends PkDaemonEvent {
 class PkClient {
   final Object _managerHandle;
   final ReceivePort _eventsPort;
+  final bool _interactive;
   final StreamController<PkDaemonEvent> _daemonEvents =
       StreamController.broadcast();
 
-  PkClient._(this._managerHandle, this._eventsPort) {
+  PkClient._(this._managerHandle, this._eventsPort, this._interactive) {
     _eventsPort.listen(_onManagerEvent);
   }
 
   static bool _initialized = false;
 
+  /// Whether transactions from this client may prompt for authorization.
+  bool get interactive => _interactive;
+
   /// Connect to the PackageKit daemon on the system bus.
-  static Future<PkClient> connect() async {
+  ///
+  /// When [interactive] is true (the default), transactions that require
+  /// authorization ask polkit to prompt the user. When false, such
+  /// transactions fail immediately with [PkError.notAuthorized]; the caller
+  /// must already be authorized, either as root or by a polkit rule.
+  ///
+  /// Non-interactive is not an authorization mechanism — it suppresses the
+  /// prompt, it does not grant anything.
+  static Future<PkClient> connect({bool interactive = true}) async {
     if (!_initialized) {
       PkBindings.init(NativeApi.initializeApiDLData);
       _initialized = true;
@@ -71,7 +83,7 @@ class PkClient {
       throw const PkServiceUnavailableException(
           'Failed to connect to org.freedesktop.PackageKit on the system bus.');
     }
-    final client = PkClient._(handle, port);
+    final client = PkClient._(handle, port, interactive);
     await client._loadProperties();
     return client;
   }
@@ -337,7 +349,7 @@ class PkClient {
       d.done.completeError(const PkServiceUnavailableException(
           'Failed to create PackageKit transaction.'));
     } else {
-      PkBindings.transactionSetHints(txHandle, 'en_US.UTF-8');
+      PkBindings.transactionSetHints(txHandle, 'en_US.UTF-8', _interactive);
       invoke(txHandle);
     }
 

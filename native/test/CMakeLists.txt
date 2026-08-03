@@ -15,7 +15,13 @@ target_link_libraries(test_manager PRIVATE
 )
 add_test(NAME test_manager COMMAND test_manager)
 
-add_executable(test_transaction test_transaction.cpp)
+# Links the real pk_transaction.cpp so hint construction is tested as shipped,
+# not reimplemented. dart_api_dl satisfies the Dart_PostCObject_DL references.
+add_executable(test_transaction
+    test_transaction.cpp
+    ${CMAKE_SOURCE_DIR}/src/pk_transaction.cpp
+    $<TARGET_OBJECTS:dart_api_dl>
+)
 target_include_directories(test_transaction PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )

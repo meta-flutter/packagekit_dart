@@ -133,10 +133,10 @@ possible.
 #### Optional: authorizing without a prompt
 
 If you need non-root operation, a polkit rule can authorize specific actions
-for the `wheel` group. This is a persistent change to system authorization
-policy — it grants unattended install, remove, and update to everyone in
-`wheel`, with no authentication. Decide whether that is acceptable for your
-machine before installing it.
+for the local administrator group. This is a persistent change to system
+authorization policy — it grants unattended install, remove, and update to
+every member of that group, with no authentication. Decide whether that is
+acceptable for your machine before installing it.
 
 ```javascript
 // /etc/polkit-1/rules.d/49-packagekit-dart.rules
@@ -150,13 +150,33 @@ polkit.addRule(function(action, subject) {
         "org.freedesktop.packagekit.package-remove",
         "org.freedesktop.packagekit.system-update"
     ];
-    if (allowed.indexOf(action.id) !== -1 && subject.isInGroup("wheel")) {
+    // "wheel" on Fedora/RHEL/Arch, "sudo" on Debian/Ubuntu. Checking both
+    // keeps one snippet correct everywhere; each is that distro's local
+    // admin group, so naming both grants nothing extra on either.
+    if (allowed.indexOf(action.id) !== -1 &&
+        (subject.isInGroup("wheel") || subject.isInGroup("sudo"))) {
         return polkit.Result.YES;
     }
 });
 ```
 
-Remove it with `sudo rm /etc/polkit-1/rules.d/49-packagekit-dart.rules`.
+The rule only applies if you are actually in one of those groups. Having
+passwordless `sudo` is not the same thing — it is often granted through a
+`sudoers` file with no group membership at all, in which case the rule looks
+installed and changes nothing:
+
+```console
+$ id -nG
+```
+
+`id -nG` is the right check because it reports the groups your *processes*
+carry. If you are missing the group, add yourself with
+`sudo usermod -aG wheel "$(id -un)"` (or `sudo` on Debian/Ubuntu) and then log
+out and back in — `usermod` only edits `/etc/group`, and a running session
+keeps the groups it was created with. To test without logging out, prefix a
+single command with `sg wheel -c '…'`.
+
+Remove the rule with `sudo rm /etc/polkit-1/rules.d/49-packagekit-dart.rules`.
 
 #### Diagnosing an unexpected `notAuthorized`
 

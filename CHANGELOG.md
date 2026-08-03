@@ -1,3 +1,13 @@
+## Unreleased
+
+- Fix the documented polkit rule, which granted only to `wheel` — the admin
+  group on Fedora/RHEL/Arch but not on Debian/Ubuntu, where it is `sudo`. A
+  `wheel`-only rule silently does nothing on Debian and is hard to diagnose,
+  because the rule looks installed and the error is unchanged. Match both.
+- Document that installing the rule is not sufficient: you must be in the
+  group, passwordless `sudo` is not the same thing, and `usermod` does not
+  affect a running session. All three produce the same unchanged denial.
+
 ## 0.4.0
 
 - Send the `interactive` hint on every transaction. The daemon treats an

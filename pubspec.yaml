@@ -2,7 +2,7 @@ name: packagekit_dart
 description: >-
   Dart FFI bindings for PackageKit, the cross-distro Linux package manager.
   Search, install, update, and remove packages via D-Bus with async streams.
-version: 0.4.1
+version: 0.4.2
 repository: https://github.com/jwinarske/packagekit_dart
 issue_tracker: https://github.com/jwinarske/packagekit_dart/issues
 

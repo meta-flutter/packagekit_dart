@@ -1,4 +1,6 @@
-## Unreleased
+## 0.4.2
+
+Documentation only — no code change.
 
 - Lead the WSL guidance with the polkit rule rather than running as root.
   Recommending root to library consumers pushes them to relay that to their

@@ -1,4 +1,7 @@
-## Unreleased
+## 0.4.1
+
+Documentation only — no code change. Released so the README rendered on
+pub.dev stops handing out a polkit rule that does nothing on Debian/Ubuntu.
 
 - Fix the documented polkit rule, which granted only to `wheel` — the admin
   group on Fedora/RHEL/Arch but not on Debian/Ubuntu, where it is `sudo`. A

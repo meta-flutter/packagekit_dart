@@ -1,3 +1,15 @@
+## Unreleased
+
+- Skip the native bridge cleanly when its build prerequisites are absent.
+  The bridge needs a C++ toolchain (cmake + ninja) and libsystemd's sd-bus;
+  on Alpine/OpenRC, a minimal image, or any non-systemd host, the build hook
+  now probes for these up front and returns without building — the PackageKit
+  backend is simply unavailable, which is fine where it is unused. Previously a
+  *missing* tool threw `ProcessException` (only a present-but-failing tool was
+  handled), failing the whole build hook and blocking `dart pub get` / install
+  for every consumer on such a host. Probing first also avoids a needless
+  sdbus-cpp clone.
+
 ## 0.4.2
 
 Documentation only — no code change.

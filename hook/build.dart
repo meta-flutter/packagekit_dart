@@ -33,6 +33,21 @@ void main(List<String> args) async {
           'packagekit_dart does not support architecture: $arch'),
     };
 
+    // The bridge needs a C++ toolchain (cmake + ninja) and libsystemd's sd-bus.
+    // When any is absent — Alpine/OpenRC, a minimal image, any non-systemd host
+    // — skip cleanly: the PackageKit backend simply won't be available (which is
+    // fine where it is unused; `emb deps` degrades, nothing else). Probing up
+    // front also avoids a needless sdbus-cpp clone. Without this, a *missing*
+    // tool throws ProcessException (only a present-but-failing tool is handled
+    // below via exitCode), which fails the whole build hook and blocks install.
+    if (!await _hasTool('cmake') ||
+        !await _hasTool('ninja') ||
+        !await _hasSdBus()) {
+      stderr.writeln('packagekit_dart: skipping native bridge — needs '
+          'cmake + ninja + libsystemd/sd-bus (PackageKit backend unavailable).');
+      return;
+    }
+
     final nativeDir = input.packageRoot.resolve('native/');
 
     // Ensure sdbus-cpp source is available.
@@ -137,4 +152,26 @@ void main(List<String> args) async {
       linkMode: DynamicLoadingBundled(),
     ));
   });
+}
+
+/// Whether [tool] is runnable (present on PATH). `Process.run` throws
+/// [ProcessException] when the executable is missing, so a missing tool must be
+/// caught rather than left to fail the build.
+Future<bool> _hasTool(String tool) async {
+  try {
+    final result = await Process.run(tool, ['--version']);
+    return result.exitCode == 0;
+  } on ProcessException {
+    return false;
+  }
+}
+
+/// Whether libsystemd's sd-bus is available to link the bridge against.
+Future<bool> _hasSdBus() async {
+  try {
+    final result = await Process.run('pkg-config', ['--exists', 'libsystemd']);
+    return result.exitCode == 0;
+  } on ProcessException {
+    return false; // pkg-config absent → assume no sd-bus
+  }
 }

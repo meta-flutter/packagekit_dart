@@ -30,7 +30,8 @@ void main(List<String> args) async {
       Architecture.x64 => 'x86_64',
       Architecture.arm64 => 'aarch64',
       _ => throw UnsupportedError(
-          'packagekit_dart does not support architecture: $arch'),
+        'packagekit_dart does not support architecture: $arch',
+      ),
     };
 
     // The bridge needs a C++ toolchain (cmake + ninja) and libsystemd's sd-bus.
@@ -43,8 +44,10 @@ void main(List<String> args) async {
     if (!await _hasTool('cmake') ||
         !await _hasTool('ninja') ||
         !await _hasSdBus()) {
-      stderr.writeln('packagekit_dart: skipping native bridge — needs '
-          'cmake + ninja + libsystemd/sd-bus (PackageKit backend unavailable).');
+      stderr.writeln(
+        'packagekit_dart: skipping native bridge — needs '
+        'cmake + ninja + libsystemd/sd-bus (PackageKit backend unavailable).',
+      );
       return;
     }
 
@@ -56,37 +59,54 @@ void main(List<String> args) async {
     const sdbusRepo = 'https://github.com/Kistler-Group/sdbus-cpp.git';
     const sdbusCommit = '28b78822cfc5fbec4bd9906168493e9985f586ed';
 
-    final sdbusDir =
-        Directory.fromUri(nativeDir.resolve('third_party/sdbus-cpp/'));
+    final sdbusDir = Directory.fromUri(
+      nativeDir.resolve('third_party/sdbus-cpp/'),
+    );
     final sdbusMarker = File.fromUri(sdbusDir.uri.resolve('CMakeLists.txt'));
     if (!sdbusMarker.existsSync()) {
       // Try git-submodule first (works in git checkouts).
-      final submoduleInit = await Process.run(
-          'git', ['submodule', 'update', '--init', '--recursive'],
-          workingDirectory: input.packageRoot.toFilePath());
+      final submoduleInit = await Process.run('git', [
+        'submodule',
+        'update',
+        '--init',
+        '--recursive',
+      ], workingDirectory: input.packageRoot.toFilePath());
       if (submoduleInit.exitCode != 0 || !sdbusMarker.existsSync()) {
         // Fall back to a direct clone at the pinned commit (pub.dev installs).
         if (sdbusDir.existsSync()) {
           await sdbusDir.delete(recursive: true);
         }
-        final clone = await Process.run(
-            'git', ['clone', '--depth', '1', sdbusRepo, sdbusDir.path]);
+        final clone = await Process.run('git', [
+          'clone',
+          '--depth',
+          '1',
+          sdbusRepo,
+          sdbusDir.path,
+        ]);
         if (clone.exitCode != 0) {
           stderr.writeln(
-              'packagekit_dart: failed to clone sdbus-cpp\n${clone.stderr}');
+            'packagekit_dart: failed to clone sdbus-cpp\n${clone.stderr}',
+          );
           return;
         }
-        final checkout = await Process.run('git', ['checkout', sdbusCommit],
-            workingDirectory: sdbusDir.path);
+        final checkout = await Process.run('git', [
+          'checkout',
+          sdbusCommit,
+        ], workingDirectory: sdbusDir.path);
         if (checkout.exitCode != 0) {
           // Shallow clone may not have the commit; do a full fetch.
-          await Process.run('git', ['fetch', '--unshallow'],
-              workingDirectory: sdbusDir.path);
-          final retry = await Process.run('git', ['checkout', sdbusCommit],
-              workingDirectory: sdbusDir.path);
+          await Process.run('git', [
+            'fetch',
+            '--unshallow',
+          ], workingDirectory: sdbusDir.path);
+          final retry = await Process.run('git', [
+            'checkout',
+            sdbusCommit,
+          ], workingDirectory: sdbusDir.path);
           if (retry.exitCode != 0) {
             stderr.writeln(
-                'packagekit_dart: failed to checkout sdbus-cpp $sdbusCommit\n${retry.stderr}');
+              'packagekit_dart: failed to checkout sdbus-cpp $sdbusCommit\n${retry.stderr}',
+            );
             return;
           }
         }
@@ -94,63 +114,60 @@ void main(List<String> args) async {
     }
 
     final buildDir = Directory.fromUri(
-        input.outputDirectory.resolve('pk_nc_build_$cmakeArch/'));
+      input.outputDirectory.resolve('pk_nc_build_$cmakeArch/'),
+    );
     await buildDir.create(recursive: true);
 
     // Configure CMake
-    final configure = await Process.run(
-        'cmake',
-        [
-          nativeDir.toFilePath(),
-          '-GNinja',
-          '-DCMAKE_BUILD_TYPE=Release',
-          '-DBUILD_TESTING=OFF',
-          '-DCMAKE_INSTALL_PREFIX=${buildDir.path}/install',
-        ],
-        workingDirectory: buildDir.path);
+    final configure = await Process.run('cmake', [
+      nativeDir.toFilePath(),
+      '-GNinja',
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DBUILD_TESTING=OFF',
+      '-DCMAKE_INSTALL_PREFIX=${buildDir.path}/install',
+    ], workingDirectory: buildDir.path);
     if (configure.exitCode != 0) {
       stderr.writeln(
-          'packagekit_dart: cmake configure failed...\n${configure.stderr}');
+        'packagekit_dart: cmake configure failed...\n${configure.stderr}',
+      );
       return;
     }
 
     // Build
-    final buildResult = await Process.run(
-        'cmake',
-        [
-          '--build',
-          '.',
-          '--parallel',
-        ],
-        workingDirectory: buildDir.path);
+    final buildResult = await Process.run('cmake', [
+      '--build',
+      '.',
+      '--parallel',
+    ], workingDirectory: buildDir.path);
     if (buildResult.exitCode != 0) {
       stderr.writeln(
-          'packagekit_dart: cmake build failed...\n${buildResult.stderr}');
+        'packagekit_dart: cmake build failed...\n${buildResult.stderr}',
+      );
       return;
     }
 
     // Install
-    final installResult = await Process.run(
-        'cmake',
-        [
-          '--install',
-          '.',
-        ],
-        workingDirectory: buildDir.path);
+    final installResult = await Process.run('cmake', [
+      '--install',
+      '.',
+    ], workingDirectory: buildDir.path);
     if (installResult.exitCode != 0) {
       stderr.writeln(
-          'packagekit_dart: cmake install failed...\n${installResult.stderr}');
+        'packagekit_dart: cmake install failed...\n${installResult.stderr}',
+      );
       return;
     }
 
     final so = Uri.file('${buildDir.path}/install/lib/libpackagekit_nc.so');
 
-    output.assets.code.add(CodeAsset(
-      package: 'packagekit_dart',
-      name: 'src/packagekit_nc.dart',
-      file: so,
-      linkMode: DynamicLoadingBundled(),
-    ));
+    output.assets.code.add(
+      CodeAsset(
+        package: 'packagekit_dart',
+        name: 'src/packagekit_nc.dart',
+        file: so,
+        linkMode: DynamicLoadingBundled(),
+      ),
+    );
   });
 }
 

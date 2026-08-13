@@ -92,8 +92,10 @@ enum PkInfo {
   const PkInfo(this.value);
 
   /// Looks up the [PkInfo] for the given integer, falling back to [unknown].
-  static PkInfo fromInt(int v) => PkInfo.values
-      .firstWhere((e) => e.value == v, orElse: () => PkInfo.unknown);
+  static PkInfo fromInt(int v) => PkInfo.values.firstWhere(
+    (e) => e.value == v,
+    orElse: () => PkInfo.unknown,
+  );
 }
 
 /// Transaction status (StatusChanged signal).
@@ -141,8 +143,10 @@ enum PkStatus {
   const PkStatus(this.value);
 
   /// Looks up the [PkStatus] for the given integer, falling back to [unknown].
-  static PkStatus fromInt(int v) => PkStatus.values
-      .firstWhere((e) => e.value == v, orElse: () => PkStatus.unknown);
+  static PkStatus fromInt(int v) => PkStatus.values.firstWhere(
+    (e) => e.value == v,
+    orElse: () => PkStatus.unknown,
+  );
 }
 
 /// Exit code from the Finished signal.
@@ -165,8 +169,10 @@ enum PkExit {
   const PkExit(this.value);
 
   /// Looks up the [PkExit] for the given integer, falling back to [unknown].
-  static PkExit fromInt(int v) => PkExit.values
-      .firstWhere((e) => e.value == v, orElse: () => PkExit.unknown);
+  static PkExit fromInt(int v) => PkExit.values.firstWhere(
+    (e) => e.value == v,
+    orElse: () => PkExit.unknown,
+  );
 }
 
 /// Error codes from the ErrorCode signal.
@@ -246,6 +252,8 @@ enum PkError {
   const PkError(this.value);
 
   /// Looks up the [PkError] for the given integer, falling back to [unknown].
-  static PkError fromInt(int v) => PkError.values
-      .firstWhere((e) => e.value == v, orElse: () => PkError.unknown);
+  static PkError fromInt(int v) => PkError.values.firstWhere(
+    (e) => e.value == v,
+    orElse: () => PkError.unknown,
+  );
 }

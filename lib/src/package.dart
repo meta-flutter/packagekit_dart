@@ -29,7 +29,11 @@ class PkPackageId {
     final parts = id.split(';');
     if (parts.length != 4) throw FormatException('Invalid package_id: $id');
     return PkPackageId(
-        name: parts[0], version: parts[1], arch: parts[2], data: parts[3]);
+      name: parts[0],
+      version: parts[1],
+      arch: parts[2],
+      data: parts[3],
+    );
   }
 
   /// The raw semicolon-delimited package ID string.
@@ -96,8 +100,8 @@ class PkPackageDetail {
   String get sizeFormatted => size == 0
       ? 'unknown'
       : size >= 1 << 30
-          ? '${(size / (1 << 30)).toStringAsFixed(1)} GiB'
-          : size >= 1 << 20
-              ? '${(size / (1 << 20)).toStringAsFixed(1)} MiB'
-              : '${(size / 1024).toStringAsFixed(1)} KiB';
+      ? '${(size / (1 << 30)).toStringAsFixed(1)} GiB'
+      : size >= 1 << 20
+      ? '${(size / (1 << 20)).toStringAsFixed(1)} MiB'
+      : '${(size / 1024).toStringAsFixed(1)} KiB';
 }

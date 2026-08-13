@@ -64,12 +64,16 @@ class TransactionDispatcher {
           if (!done.isCompleted) {
             if (exit == PkExit.success) {
               done.complete(
-                  PkTransactionResult(exit: exit, runtimeMs: result.runtimeMs));
+                PkTransactionResult(exit: exit, runtimeMs: result.runtimeMs),
+              );
             } else {
-              done.completeError(PkTransactionException(
+              done.completeError(
+                PkTransactionException(
                   'Transaction failed: ${exit.name}',
                   exit: exit,
-                  runtimeMs: result.runtimeMs));
+                  runtimeMs: result.runtimeMs,
+                ),
+              );
             }
           }
         case 0xFF:
@@ -133,8 +137,9 @@ ManagerEvent? dispatchManagerEvent(dynamic msg) {
     case 0xD1:
       return ManagerRepoListChangedEvent();
     case 0xD2:
-      final state =
-          msg.buffer.asByteData(msg.offsetInBytes).getUint32(1, Endian.little);
+      final state = msg.buffer
+          .asByteData(msg.offsetInBytes)
+          .getUint32(1, Endian.little);
       return ManagerNetworkStateChangedEvent(state);
     default:
       return null;

@@ -94,11 +94,11 @@ class PkInstallPlan {
 
   /// Raw package ID strings for all non-removal changes.
   List<String> get allIds => [
-        ...installing,
-        ...updating,
-        ...reinstalling,
-        ...downgrading,
-      ].map((p) => p.id.raw).toList();
+    ...installing,
+    ...updating,
+    ...reinstalling,
+    ...downgrading,
+  ].map((p) => p.id.raw).toList();
 
   /// Whether this plan contains no changes at all.
   bool get isEmpty =>
@@ -119,7 +119,8 @@ class PkInstallPlan {
       obsoleting.length;
 
   @override
-  String toString() => 'PkInstallPlan('
+  String toString() =>
+      'PkInstallPlan('
       '+${installing.length} ↑${updating.length} -${removing.length}'
       '${obsoleting.isNotEmpty ? " obs:${obsoleting.length}" : ""})';
 }

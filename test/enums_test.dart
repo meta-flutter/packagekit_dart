@@ -7,8 +7,11 @@ void main() {
       final seen = <int>{};
       for (final f in PkFilter.values) {
         if (f == PkFilter.none) continue;
-        expect(seen.contains(f.value), isFalse,
-            reason: '${f.name} has duplicate value ${f.value}');
+        expect(
+          seen.contains(f.value),
+          isFalse,
+          reason: '${f.name} has duplicate value ${f.value}',
+        );
         seen.add(f.value);
       }
     });

@@ -1,4 +1,7 @@
-## Unreleased
+## 0.4.3
+
+A build-hook fix so the package installs on hosts that lack the native-bridge
+toolchain.
 
 - Skip the native bridge cleanly when its build prerequisites are absent.
   The bridge needs a C++ toolchain (cmake + ninja) and libsystemd's sd-bus;

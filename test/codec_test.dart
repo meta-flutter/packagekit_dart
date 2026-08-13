@@ -321,10 +321,7 @@ void main() {
     test('throws on truncated data', () {
       // Only 2 bytes, but uint32 needs 4
       final data = Uint8List.fromList([0x01, 0x02]);
-      expect(
-        () => GlazeCodec.decode<PkFinished>(data, 0),
-        throwsRangeError,
-      );
+      expect(() => GlazeCodec.decode<PkFinished>(data, 0), throwsRangeError);
     });
   });
 

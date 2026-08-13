@@ -19,8 +19,10 @@ void main() {
 
   group('PkTransactionFlag', () {
     test('combine with simulate', () {
-      final flags = PkTransactionFlag.combine(
-          [PkTransactionFlag.onlyTrusted, PkTransactionFlag.simulate]);
+      final flags = PkTransactionFlag.combine([
+        PkTransactionFlag.onlyTrusted,
+        PkTransactionFlag.simulate,
+      ]);
       expect(flags & PkTransactionFlag.simulate.value, isNonZero);
       expect(flags & PkTransactionFlag.onlyTrusted.value, isNonZero);
     });
@@ -76,8 +78,11 @@ void main() {
     });
 
     test('PkTransactionException', () {
-      const e =
-          PkTransactionException('failed', exit: PkExit.failed, runtimeMs: 123);
+      const e = PkTransactionException(
+        'failed',
+        exit: PkExit.failed,
+        runtimeMs: 123,
+      );
       expect(e.toString(), contains('failed'));
       expect(e.exit, PkExit.failed);
       expect(e.runtimeMs, 123);

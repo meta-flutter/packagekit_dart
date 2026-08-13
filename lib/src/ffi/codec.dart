@@ -125,7 +125,10 @@ class GlazeCodec {
     final description = r.readString();
     final enabled = r.readBool();
     return PkRepoDetail(
-        repoId: repoId, description: description, enabled: enabled);
+      repoId: repoId,
+      description: description,
+      enabled: enabled,
+    );
   }
 
   static PkFiles _decodeFiles(_Reader r) {
@@ -231,14 +234,16 @@ class _Reader {
   int _offset;
 
   _Reader(Uint8List bytes, int offset)
-      : _data = bytes.buffer.asByteData(bytes.offsetInBytes),
-        _length = bytes.length,
-        _offset = offset;
+    : _data = bytes.buffer.asByteData(bytes.offsetInBytes),
+      _length = bytes.length,
+      _offset = offset;
 
   void _checkBounds(int needed) {
     if (_offset + needed > _length) {
-      throw RangeError('Codec read overrun: need $needed bytes at '
-          'offset $_offset, but buffer is $_length bytes');
+      throw RangeError(
+        'Codec read overrun: need $needed bytes at '
+        'offset $_offset, but buffer is $_length bytes',
+      );
     }
   }
 
@@ -266,8 +271,11 @@ class _Reader {
   String readString() {
     final len = readUint32();
     _checkBounds(len);
-    final bytes =
-        Uint8List.view(_data.buffer, _data.offsetInBytes + _offset, len);
+    final bytes = Uint8List.view(
+      _data.buffer,
+      _data.offsetInBytes + _offset,
+      len,
+    );
     _offset += len;
     return utf8.decode(bytes);
   }

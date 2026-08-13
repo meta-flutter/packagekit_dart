@@ -134,19 +134,21 @@ void main() {
   group('PkProgress', () {
     test('percentageKnown', () {
       const p = PkProgress(
-          packageId: '',
-          status: PkStatus.download,
-          percentage: 50,
-          isItem: false);
+        packageId: '',
+        status: PkStatus.download,
+        percentage: 50,
+        isItem: false,
+      );
       expect(p.percentageKnown, isTrue);
     });
 
     test('percentage unknown at 101', () {
       const p = PkProgress(
-          packageId: '',
-          status: PkStatus.running,
-          percentage: 101,
-          isItem: false);
+        packageId: '',
+        status: PkStatus.running,
+        percentage: 101,
+        isItem: false,
+      );
       expect(p.percentageKnown, isFalse);
     });
   });

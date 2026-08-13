@@ -59,8 +59,15 @@ Uint8List _makeProgressMsg(String pkgId, int status, int pct, bool isItem) {
   return b.toBytes();
 }
 
-Uint8List _makeDetailsMsg(String pkgId, String summary, String desc, String url,
-    String license, String group, int size) {
+Uint8List _makeDetailsMsg(
+  String pkgId,
+  String summary,
+  String desc,
+  String url,
+  String license,
+  String group,
+  int size,
+) {
   final b = _PayloadBuilder()
     ..writeByte(0x03)
     ..writeString(pkgId)
@@ -107,7 +114,11 @@ Uint8List _makeMessageMsg(int type, String details) {
 }
 
 Uint8List _makeEulaMsg(
-    String eulaId, String pkgId, String vendor, String agreement) {
+  String eulaId,
+  String pkgId,
+  String vendor,
+  String agreement,
+) {
   final b = _PayloadBuilder()
     ..writeByte(0x09)
     ..writeString(eulaId)
@@ -117,8 +128,16 @@ Uint8List _makeEulaMsg(
   return b.toBytes();
 }
 
-Uint8List _makeRepoSigMsg(String pkgId, String repoName, String keyUrl,
-    String userId, String keyId, String fp, String ts, int type) {
+Uint8List _makeRepoSigMsg(
+  String pkgId,
+  String repoName,
+  String keyUrl,
+  String userId,
+  String keyId,
+  String fp,
+  String ts,
+  int type,
+) {
   final b = _PayloadBuilder()
     ..writeByte(0x0A)
     ..writeString(pkgId)
@@ -217,8 +236,17 @@ void main() {
     test('dispatches PkPackageDetail (0x03)', () async {
       final c = Completer<PkPackageDetail>();
       d.details.stream.listen(c.complete);
-      d.dispatch(_makeDetailsMsg(
-          'gcc;13;x86_64;f', 'GCC', 'Compiler', 'url', 'GPL', 'Dev', 1024));
+      d.dispatch(
+        _makeDetailsMsg(
+          'gcc;13;x86_64;f',
+          'GCC',
+          'Compiler',
+          'url',
+          'GPL',
+          'Dev',
+          1024,
+        ),
+      );
       final det = await c.future;
       expect(det.id.name, 'gcc');
       expect(det.description, 'Compiler');
@@ -279,8 +307,18 @@ void main() {
     test('dispatches PkRepoSigRequired (0x0A)', () async {
       final c = Completer<PkRepoSigRequired>();
       d.repoSigRequired.stream.listen(c.complete);
-      d.dispatch(_makeRepoSigMsg(
-          'pkg;1;x;r', 'repo', 'url', 'user', 'id', 'fp', 'ts', 1));
+      d.dispatch(
+        _makeRepoSigMsg(
+          'pkg;1;x;r',
+          'repo',
+          'url',
+          'user',
+          'id',
+          'fp',
+          'ts',
+          1,
+        ),
+      );
       final s = await c.future;
       expect(s.repositoryName, 'repo');
     });
@@ -304,8 +342,13 @@ void main() {
       d.dispatch(_makeFinishedMsg(2, 100));
       expect(
         d.done.future,
-        throwsA(isA<PkTransactionException>()
-            .having((e) => e.exit, 'exit', PkExit.failed)),
+        throwsA(
+          isA<PkTransactionException>().having(
+            (e) => e.exit,
+            'exit',
+            PkExit.failed,
+          ),
+        ),
       );
     });
 
@@ -337,10 +380,7 @@ void main() {
     test('decode error completes done with PkException', () async {
       // Send truncated message — discriminator 0x01 but no payload.
       d.dispatch(Uint8List.fromList([0x01]));
-      expect(
-        d.done.future,
-        throwsA(isA<PkException>()),
-      );
+      expect(d.done.future, throwsA(isA<PkException>()));
     });
 
     test('duplicate finish is ignored', () async {

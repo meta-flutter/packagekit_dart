@@ -81,7 +81,8 @@ class PkClient {
     if ((handle as Pointer).address == 0) {
       port.close();
       throw const PkServiceUnavailableException(
-          'Failed to connect to org.freedesktop.PackageKit on the system bus.');
+        'Failed to connect to org.freedesktop.PackageKit on the system bus.',
+      );
     }
     final client = PkClient._(handle, port, interactive);
     await client._loadProperties();
@@ -104,25 +105,25 @@ class PkClient {
   PkTransaction searchName(
     String query, {
     List<PkFilter> filters = const [PkFilter.none],
-  }) =>
-      _startQuery(
-          (h) => PkBindings.searchName(h, PkFilter.combine(filters), [query]));
+  }) => _startQuery(
+    (h) => PkBindings.searchName(h, PkFilter.combine(filters), [query]),
+  );
 
   /// Searches packages by description substring.
   PkTransaction searchDetails(
     String query, {
     List<PkFilter> filters = const [PkFilter.none],
-  }) =>
-      _startQuery((h) =>
-          PkBindings.searchDetails(h, PkFilter.combine(filters), [query]));
+  }) => _startQuery(
+    (h) => PkBindings.searchDetails(h, PkFilter.combine(filters), [query]),
+  );
 
   /// Searches for packages that own the given file [path].
   PkTransaction searchFiles(
     String path, {
     List<PkFilter> filters = const [PkFilter.none],
-  }) =>
-      _startQuery(
-          (h) => PkBindings.searchFiles(h, PkFilter.combine(filters), [path]));
+  }) => _startQuery(
+    (h) => PkBindings.searchFiles(h, PkFilter.combine(filters), [path]),
+  );
 
   /// Lists all packages matching the given [filters].
   PkTransaction getPackages({
@@ -131,18 +132,16 @@ class PkClient {
       _startQuery((h) => PkBindings.getPackages(h, PkFilter.combine(filters)));
 
   /// Lists available updates matching the given [filters].
-  PkTransaction getUpdates({
-    List<PkFilter> filters = const [PkFilter.none],
-  }) =>
+  PkTransaction getUpdates({List<PkFilter> filters = const [PkFilter.none]}) =>
       _startQuery((h) => PkBindings.getUpdates(h, PkFilter.combine(filters)));
 
   /// Resolves package [names] to full package IDs.
   PkTransaction resolve(
     List<String> names, {
     List<PkFilter> filters = const [PkFilter.none],
-  }) =>
-      _startQuery(
-          (h) => PkBindings.resolve(h, PkFilter.combine(filters), names));
+  }) => _startQuery(
+    (h) => PkBindings.resolve(h, PkFilter.combine(filters), names),
+  );
 
   /// Find packages that provide the given capabilities/[values] (rpm/deb
   /// `Provides:`, file paths, virtual names). Unlike [resolve], which matches
@@ -152,9 +151,9 @@ class PkClient {
   PkTransaction whatProvides(
     List<String> values, {
     List<PkFilter> filters = const [PkFilter.none],
-  }) =>
-      _startQuery(
-          (h) => PkBindings.whatProvides(h, PkFilter.combine(filters), values));
+  }) => _startQuery(
+    (h) => PkBindings.whatProvides(h, PkFilter.combine(filters), values),
+  );
 
   /// Retrieves detailed metadata for the given [packageIds].
   PkTransaction getDetails(List<String> packageIds) =>
@@ -169,9 +168,7 @@ class PkClient {
       _startQuery((h) => PkBindings.getFiles(h, packageIds));
 
   /// Lists configured repositories.
-  PkTransaction getRepoList({
-    List<PkFilter> filters = const [PkFilter.none],
-  }) =>
+  PkTransaction getRepoList({List<PkFilter> filters = const [PkFilter.none]}) =>
       _startQuery((h) => PkBindings.getRepoList(h, PkFilter.combine(filters)));
 
   /// Lists packages that the given [packageIds] depend on.
@@ -179,18 +176,28 @@ class PkClient {
     List<String> packageIds, {
     List<PkFilter> filters = const [PkFilter.none],
     bool recursive = false,
-  }) =>
-      _startQuery((h) => PkBindings.dependsOn(
-          h, PkFilter.combine(filters), packageIds, recursive));
+  }) => _startQuery(
+    (h) => PkBindings.dependsOn(
+      h,
+      PkFilter.combine(filters),
+      packageIds,
+      recursive,
+    ),
+  );
 
   /// Lists packages that require the given [packageIds].
   PkTransaction requiredBy(
     List<String> packageIds, {
     List<PkFilter> filters = const [PkFilter.none],
     bool recursive = false,
-  }) =>
-      _startQuery((h) => PkBindings.requiredBy(
-          h, PkFilter.combine(filters), packageIds, recursive));
+  }) => _startQuery(
+    (h) => PkBindings.requiredBy(
+      h,
+      PkFilter.combine(filters),
+      packageIds,
+      recursive,
+    ),
+  );
 
   /// Lists available distribution upgrades.
   PkTransaction getDistroUpgrades() =>
@@ -202,11 +209,15 @@ class PkClient {
   Future<PkInstallPlan> simulateInstall(
     List<String> packageIds, {
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _collectPlan(_startQuery((h) => PkBindings.installPackages(
-          h,
-          PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
-          packageIds)));
+  }) => _collectPlan(
+    _startQuery(
+      (h) => PkBindings.installPackages(
+        h,
+        PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
+        packageIds,
+      ),
+    ),
+  );
 
   /// Simulates removing the given [packageIds] and returns the resolved plan.
   Future<PkInstallPlan> simulateRemove(
@@ -214,23 +225,31 @@ class PkClient {
     bool allowDeps = false,
     bool autoremove = false,
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _collectPlan(_startQuery((h) => PkBindings.removePackages(
-          h,
-          PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
-          packageIds,
-          allowDeps,
-          autoremove)));
+  }) => _collectPlan(
+    _startQuery(
+      (h) => PkBindings.removePackages(
+        h,
+        PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
+        packageIds,
+        allowDeps,
+        autoremove,
+      ),
+    ),
+  );
 
   /// Simulates updating the given [packageIds] and returns the resolved plan.
   Future<PkInstallPlan> simulateUpdate(
     List<String> packageIds, {
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _collectPlan(_startQuery((h) => PkBindings.updatePackages(
-          h,
-          PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
-          packageIds)));
+  }) => _collectPlan(
+    _startQuery(
+      (h) => PkBindings.updatePackages(
+        h,
+        PkTransactionFlag.combine([...flags, PkTransactionFlag.simulate]),
+        packageIds,
+      ),
+    ),
+  );
 
   Future<PkInstallPlan> _collectPlan(PkTransaction tx) async {
     final pkgs = <PkPackage>[];
@@ -247,9 +266,13 @@ class PkClient {
   PkTransaction installPackages(
     List<String> packageIds, {
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _startQuery((h) => PkBindings.installPackages(
-          h, PkTransactionFlag.combine(flags), packageIds));
+  }) => _startQuery(
+    (h) => PkBindings.installPackages(
+      h,
+      PkTransactionFlag.combine(flags),
+      packageIds,
+    ),
+  );
 
   /// Removes the given [packageIds].
   PkTransaction removePackages(
@@ -257,17 +280,27 @@ class PkClient {
     bool allowDeps = false,
     bool autoremove = false,
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _startQuery((h) => PkBindings.removePackages(h,
-          PkTransactionFlag.combine(flags), packageIds, allowDeps, autoremove));
+  }) => _startQuery(
+    (h) => PkBindings.removePackages(
+      h,
+      PkTransactionFlag.combine(flags),
+      packageIds,
+      allowDeps,
+      autoremove,
+    ),
+  );
 
   /// Updates the given [packageIds] to the latest available versions.
   PkTransaction updatePackages(
     List<String> packageIds, {
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _startQuery((h) => PkBindings.updatePackages(
-          h, PkTransactionFlag.combine(flags), packageIds));
+  }) => _startQuery(
+    (h) => PkBindings.updatePackages(
+      h,
+      PkTransactionFlag.combine(flags),
+      packageIds,
+    ),
+  );
 
   /// Refreshes the package cache. Set [force] to bypass the daemon's freshness check.
   PkTransaction refreshCache({bool force = false}) =>
@@ -277,17 +310,17 @@ class PkClient {
   PkTransaction installFiles(
     List<String> paths, {
     List<PkTransactionFlag> flags = const [PkTransactionFlag.onlyTrusted],
-  }) =>
-      _startQuery((h) =>
-          PkBindings.installFiles(h, PkTransactionFlag.combine(flags), paths));
+  }) => _startQuery(
+    (h) => PkBindings.installFiles(h, PkTransactionFlag.combine(flags), paths),
+  );
 
   /// Downloads the given [packageIds] without installing them.
   PkTransaction downloadPackages(
     List<String> packageIds, {
     bool storeInCache = true,
-  }) =>
-      _startQuery(
-          (h) => PkBindings.downloadPackages(h, storeInCache, packageIds));
+  }) => _startQuery(
+    (h) => PkBindings.downloadPackages(h, storeInCache, packageIds),
+  );
 
   /// Enables or disables the repository identified by [repoId].
   PkTransaction repoEnable(String repoId, {required bool enabled}) =>
@@ -326,8 +359,10 @@ class PkClient {
     final port = ReceivePort('packagekit.tx');
     final d = TransactionDispatcher();
 
-    final txHandle =
-        PkBindings.transactionCreate(_managerHandle, port.sendPort.nativePort);
+    final txHandle = PkBindings.transactionCreate(
+      _managerHandle,
+      port.sendPort.nativePort,
+    );
     final validHandle = (txHandle as Pointer).address != 0;
 
     void closeAll() {
@@ -346,8 +381,11 @@ class PkClient {
 
     if (!validHandle) {
       closeAll();
-      d.done.completeError(const PkServiceUnavailableException(
-          'Failed to create PackageKit transaction.'));
+      d.done.completeError(
+        const PkServiceUnavailableException(
+          'Failed to create PackageKit transaction.',
+        ),
+      );
     } else {
       PkBindings.transactionSetHints(txHandle, 'en_US.UTF-8', _interactive);
       invoke(txHandle);

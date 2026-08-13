@@ -1,3 +1,14 @@
+## 0.5.0
+
+- **Breaking:** migrate the native build hook from `hooks` 1.x to 2.x (and
+  `code_assets` to 1.2.x). hooks 2.x requires **Dart >=3.10**, so the SDK lower
+  bound rises from 3.6.0 — consumers on Dart 3.6–3.9 should stay on 0.4.x. The
+  hook's behaviour is unchanged (it still builds `libpackagekit_nc.so` via CMake
+  and skips cleanly when cmake/ninja/sd-bus are absent); the migration is a
+  dependency bump only, verified end to end against a consumer build.
+- Drop the `native_toolchain_c` dependency: it was declared but never imported
+  (the hook drives CMake directly rather than `CBuilder`).
+
 ## 0.4.3
 
 A build-hook fix so the package installs on hosts that lack the native-bridge
